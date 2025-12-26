@@ -105,10 +105,32 @@ incidentscope/
 
 ## Development Phases
 
-- **Phase 1**: MVP foundations (incident service, API gateway, basic UI)
-- **Phase 2**: Advanced correlation (ingestion pipeline, suspect hypotheses)
-- **Phase 3**: AI intelligence (RAG, grounded assistant)
-- **Phase 4**: Scale & hardening (multi-tenancy, reliability patterns)
+- **Phase 1**: ✅ **COMPLETE** - MVP foundations (incident service, API gateway, basic UI)
+  - ✅ Incident Service with PostgreSQL integration
+  - ✅ API Gateway (BFF) with tenant isolation
+  - ✅ Next.js frontend with incident list and detail pages
+  - ✅ OpenTelemetry instrumentation
+  - ✅ Database schemas (PostgreSQL + ClickHouse)
+  - ✅ Local development environment (Docker Compose)
+  
+- **Phase 2**: 🚧 **IN PROGRESS** - Advanced correlation (ingestion pipeline, suspect hypotheses)
+  - [ ] OTel consumers (logs, metrics, traces)
+  - [ ] Correlation engine (suspect services, hypotheses)
+  - [ ] Deploy events service
+  - [ ] Evidence explorer UI
+  
+- **Phase 3**: ⏳ **PLANNED** - AI intelligence (RAG, grounded assistant)
+  - [ ] RAG service with vector embeddings
+  - [ ] Incident assistant with citations
+  - [ ] Runbook/postmortem indexing
+  
+- **Phase 4**: ⏳ **PLANNED** - Scale & hardening (multi-tenancy, reliability patterns)
+  - [ ] Remaining services (Catalog, SLO, Alert Router, Anomaly)
+  - [ ] Infrastructure as Code (Terraform, Helm, ArgoCD)
+  - [ ] Enhanced CI/CD pipelines
+  - [ ] Load testing and chaos engineering
+
+**Current Status**: Phase 1 complete. Working on Phase 2 - implementing telemetry ingestion and correlation engine.
 
 ## License
 
