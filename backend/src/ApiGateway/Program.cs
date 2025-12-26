@@ -27,8 +27,7 @@ builder.Services.AddIncidentScopeObservability(
     serviceVersion: "1.0.0",
     otlpEndpoint: builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
-// Tenant middleware
-builder.Services.AddScoped<TenantMiddleware>();
+// Tenant middleware is registered via UseMiddleware, no need to register here
 
 var app = builder.Build();
 

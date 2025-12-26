@@ -23,8 +23,7 @@ var connectionString = builder.Configuration.GetConnectionString("Postgres")
 builder.Services.AddDbContext<IncidentScopeDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Tenant middleware
-builder.Services.AddScoped<TenantMiddleware>();
+// Tenant middleware is registered via UseMiddleware, no need to register here
 
 var app = builder.Build();
 
@@ -51,7 +50,7 @@ app.MapPost("/incidents", async (
         Id = Guid.NewGuid(),
         TenantId = Guid.Parse(tenantContext.TenantId),
         EnvId = Guid.Parse(request.EnvId),
-        PrimaryServiceId = request.PrimaryServiceId != null ? Guid.Parse(request.PrimaryServiceId) : null,
+        PrimaryServiceId = request.PrimaryServiceId != null ? (Guid?)Guid.Parse(request.PrimaryServiceId) : null,
         Severity = request.Severity,
         Status = "open",
         Title = request.Title,

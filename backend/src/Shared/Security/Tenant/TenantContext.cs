@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace IncidentScope.Security.Tenant;
 
 public class TenantContext

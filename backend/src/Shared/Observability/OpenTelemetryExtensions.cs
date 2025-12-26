@@ -1,5 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -65,25 +65,10 @@ public static class OpenTelemetryExtensions
                 }
             });
 
-        services.AddLogging(builder =>
-        {
-            builder.AddOpenTelemetry(options =>
-            {
-                options.SetResourceBuilder(resourceBuilder);
-
-                if (!string.IsNullOrEmpty(otlpEndpoint))
-                {
-                    options.AddOtlpExporter(otlpOptions =>
-                    {
-                        otlpOptions.Endpoint = new Uri(otlpEndpoint);
-                    });
-                }
-                else
-                {
-                    options.AddConsoleExporter();
-                }
-            });
-        });
+        // Note: Logging to OpenTelemetry requires OpenTelemetry.Extensions.Logging package
+        // which is not included in the current setup. Standard .NET logging will work.
+        // To enable OTel logging, add the package and uncomment:
+        // services.AddLogging(builder => builder.AddOpenTelemetry(...));
 
         return services;
     }

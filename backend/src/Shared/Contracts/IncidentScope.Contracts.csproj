@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.25.1" />
     <PackageReference Include="Grpc.Tools" Version="2.59.0" PrivateAssets="All" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.59.0" />
     <Protobuf Include="../../../../proto/incidentscope/*.proto" GrpcServices="Server,Client" />
   </ItemGroup>
 </Project>

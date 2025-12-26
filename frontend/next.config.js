@@ -9,6 +9,19 @@ const nextConfig = {
       },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'x-tenant-id',
+            value: '00000000-0000-0000-0000-000000000001', // Default tenant for development
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
