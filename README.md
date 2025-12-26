@@ -2,6 +2,52 @@
 
 Production-ready observability and incident management platform with AI-powered root cause analysis.
 
+## Tech Stack
+
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **TanStack Query** - Data fetching, caching, and synchronization
+- **Tailwind CSS** - Utility-first CSS framework
+- **Recharts** - Charting library for visualizations
+
+### Backend
+- **.NET 8** - Modern C# runtime and framework
+- **Minimal APIs** - Lightweight HTTP endpoints
+- **gRPC** - High-performance inter-service communication
+- **Protocol Buffers** - Schema-first API contracts
+
+### Data Storage
+- **PostgreSQL 16** - Relational database for metadata (incidents, services, SLOs)
+- **ClickHouse** - Columnar OLAP database for high-volume telemetry (logs, metrics, traces)
+- **Redis 7** - In-memory cache for hot data and correlation results
+- **pgvector** - Vector similarity search for RAG embeddings
+
+### Messaging & Streaming
+- **Kafka/Redpanda** - Distributed event streaming platform
+- **OpenTelemetry Collector** - Unified telemetry collection and routing
+
+### Observability
+- **OpenTelemetry** - Vendor-neutral observability standard
+- **OTLP** - OpenTelemetry Protocol for signal export
+- **Prometheus** - Metrics collection (dogfooding)
+- **Grafana** - Visualization and dashboards (dogfooding)
+- **Tempo/Jaeger** - Distributed tracing (dogfooding)
+- **Loki/ELK** - Log aggregation (dogfooding)
+
+### Infrastructure & DevOps
+- **Docker & Docker Compose** - Containerization and local development
+- **Kubernetes** - Container orchestration (AKS/EKS)
+- **Helm** - Kubernetes package management
+- **Terraform** - Infrastructure as Code
+- **ArgoCD** - GitOps continuous delivery
+- **GitHub Actions** - CI/CD pipelines
+
+### AI/ML
+- **RAG (Retrieval-Augmented Generation)** - Grounded AI responses with citations
+- **Vector Embeddings** - Semantic search over runbooks and postmortems
+- **Lightweight Ranking Models** - Hypothesis prioritization
+
 ## Architecture
 
 IncidentScope is a microservices-based platform that ingests OpenTelemetry signals (logs, metrics, traces), correlates them with deployment events, and provides intelligent incident management with root cause hypotheses.

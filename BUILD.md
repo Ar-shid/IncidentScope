@@ -6,8 +6,10 @@ This document provides step-by-step instructions for building and running Incide
 
 - .NET 8 SDK
 - Node.js 18+ and pnpm (or npm)
-- Docker and Docker Compose
+- **Docker Desktop** (must be running - see troubleshooting below)
 - Git
+
+> **Important**: Docker Desktop must be running before starting infrastructure. If you see connection errors, ensure Docker Desktop is started and fully initialized.
 
 ## Initial Setup
 
@@ -18,6 +20,8 @@ cd IncidentScope
 ```
 
 ### 2. Start Infrastructure
+
+**First, ensure Docker Desktop is running** (check system tray for Docker icon).
 
 Start all required services (PostgreSQL, Redis, ClickHouse, Redpanda, OTel Collector):
 
@@ -107,7 +111,7 @@ docker exec -it incidentscope-postgres psql -U incidentscope -d incidentscope -c
 ### Services Won't Start
 
 - Check Docker is running: `docker ps`
-- Check ports aren't in use: `netstat -an | grep -E '5000|5001|5432|6379|8123|19092'`
+- Check ports aren't in use: `netstat -an | findstr "5000 5001 5432 6379 8123 19092"` (Windows) or `netstat -an | grep -E '5000|5001|5432|6379|8123|19092'` (Linux/Mac)
 - View logs: `docker-compose -f scripts/local/docker-compose.yml logs`
 
 ### Database Connection Issues
