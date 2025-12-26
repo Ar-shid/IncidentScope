@@ -1,0 +1,60 @@
+syntax = "proto3";
+package incidentscope;
+
+option csharp_namespace = "IncidentScope.Contracts";
+
+// Catalog service
+service CatalogService {
+  rpc GetService (GetServiceRequest) returns (Service);
+  rpc ListServices (ListServicesRequest) returns (ListServicesResponse);
+  rpc GetEnvironment (GetEnvironmentRequest) returns (Environment);
+  rpc ListEnvironments (ListEnvironmentsRequest) returns (ListEnvironmentsResponse);
+}
+
+message GetServiceRequest {
+  string tenant_id = 1;
+  string service_id = 2;
+}
+
+message ListServicesRequest {
+  string tenant_id = 1;
+  string env_id = 2;
+}
+
+message ListServicesResponse {
+  repeated Service services = 1;
+}
+
+message GetEnvironmentRequest {
+  string tenant_id = 1;
+  string env_id = 2;
+}
+
+message ListEnvironmentsRequest {
+  string tenant_id = 1;
+}
+
+message ListEnvironmentsResponse {
+  repeated Environment environments = 1;
+}
+
+message Service {
+  string id = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string namespace = 4;
+  string team = 5;
+  int32 criticality = 6;
+  map<string, string> tags = 7;
+  int64 created_at_unix_ms = 8;
+}
+
+message Environment {
+  string id = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string cluster = 4;
+  string region = 5;
+  int64 created_at_unix_ms = 6;
+}
+

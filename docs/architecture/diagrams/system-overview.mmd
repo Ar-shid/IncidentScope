@@ -1,0 +1,82 @@
+graph TB
+    subgraph "Frontend"
+        UI[Next.js UI]
+    end
+
+    subgraph "Control Plane"
+        Gateway[API Gateway<br/>BFF]
+        Auth[Auth/RBAC<br/>OIDC/JWT]
+        Postgres[(PostgreSQL<br/>Metadata)]
+        Redis[(Redis<br/>Hot Cache)]
+        RAG[RAG Service<br/>Vector Store]
+    end
+
+    subgraph "Data Plane"
+        OTel[OpenTelemetry<br/>Collector]
+        Kafka[(Kafka/Redpanda<br/>Topics)]
+        
+        subgraph "Consumers"
+            LogsC[Logs Consumer]
+            MetricsC[Metrics Consumer]
+            TracesC[Traces Consumer]
+        end
+        
+        ClickHouse[(ClickHouse<br/>Telemetry)]
+    end
+
+    subgraph "Intelligence"
+        Corr[Correlation Engine]
+        Anomaly[Anomaly Service]
+        SLO[SLO Engine]
+        Alert[Alert Router]
+    end
+
+    subgraph "Workload Services"
+        App1[App Service 1]
+        App2[App Service 2]
+        AppN[App Service N]
+    end
+
+    UI -->|HTTPS REST| Gateway
+    Gateway -->|JWT Validation| Auth
+    Gateway -->|gRPC| Corr
+    Gateway -->|REST| Postgres
+    
+    App1 -->|OTLP| OTel
+    App2 -->|OTLP| OTel
+    AppN -->|OTLP| OTel
+    
+    OTel -->|Export| Kafka
+    
+    Kafka -->|Consume| LogsC
+    Kafka -->|Consume| MetricsC
+    Kafka -->|Consume| TracesC
+    
+    LogsC -->|Write| ClickHouse
+    MetricsC -->|Write| ClickHouse
+    TracesC -->|Write| ClickHouse
+    
+    Corr -->|Query| ClickHouse
+    Corr -->|Query| Postgres
+    Corr -->|Cache| Redis
+    
+    Anomaly -->|Query| ClickHouse
+    Anomaly -->|Emit| Alert
+    
+    SLO -->|Query| ClickHouse
+    SLO -->|Emit| Alert
+    
+    Alert -->|Create/Update| Postgres
+    Alert -->|Webhook| External
+    
+    RAG -->|Query| Postgres
+    RAG -->|Embeddings| Postgres
+
+    style UI fill:#e1f5ff
+    style Gateway fill:#fff4e1
+    style Postgres fill:#e1ffe1
+    style Redis fill:#ffe1e1
+    style ClickHouse fill:#e1e1ff
+    style Kafka fill:#ffe1f5
+    style Corr fill:#f5e1ff
+

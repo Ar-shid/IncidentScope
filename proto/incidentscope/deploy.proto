@@ -1,0 +1,58 @@
+syntax = "proto3";
+package incidentscope;
+
+option csharp_namespace = "IncidentScope.Contracts";
+
+// Deploy events service
+service DeployEventsService {
+  rpc RecordDeployEvent (RecordDeployEventRequest) returns (DeployEvent);
+  rpc GetDeployEvents (GetDeployEventsRequest) returns (GetDeployEventsResponse);
+  rpc GetDeployEventsForService (GetDeployEventsForServiceRequest) returns (GetDeployEventsResponse);
+}
+
+message RecordDeployEventRequest {
+  string tenant_id = 1;
+  string service_id = 2;
+  string env_id = 3;
+  string version = 4;
+  string commit_sha = 5;
+  string status = 6;
+  int64 started_at_unix_ms = 7;
+  int64 finished_at_unix_ms = 8;
+  string actor = 9;
+  map<string, string> metadata = 10;
+}
+
+message GetDeployEventsRequest {
+  string tenant_id = 1;
+  string service_id = 2;
+  string env_id = 3;
+  int64 from_unix_ms = 4;
+  int64 to_unix_ms = 5;
+}
+
+message GetDeployEventsForServiceRequest {
+  string tenant_id = 1;
+  string service_id = 2;
+  int64 from_unix_ms = 3;
+  int64 to_unix_ms = 4;
+}
+
+message GetDeployEventsResponse {
+  repeated DeployEvent events = 1;
+}
+
+message DeployEvent {
+  string id = 1;
+  string tenant_id = 2;
+  string service_id = 3;
+  string env_id = 4;
+  string version = 5;
+  string commit_sha = 6;
+  string status = 7;
+  int64 started_at_unix_ms = 8;
+  int64 finished_at_unix_ms = 9;
+  string actor = 10;
+  map<string, string> metadata = 11;
+}
+

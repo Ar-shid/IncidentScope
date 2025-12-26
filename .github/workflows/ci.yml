@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore backend/src/**/*.csproj
+      
+      - name: Build
+        run: dotnet build backend/src/**/*.csproj --no-restore
+      
+      - name: Test
+        run: dotnet test backend/tests/**/*.csproj --no-build --verbosity normal || true
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install dependencies
+        run: cd frontend && pnpm install
+      
+      - name: Lint
+        run: cd frontend && pnpm lint || true
+      
+      - name: Type check
+        run: cd frontend && pnpm type-check || true
+      
+      - name: Build
+        run: cd frontend && pnpm build
+

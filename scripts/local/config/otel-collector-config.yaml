@@ -1,0 +1,64 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1024
+    spike_limit_mib: 256
+
+  batch:
+    send_batch_size: 8192
+    timeout: 1s
+
+  resource:
+    attributes:
+      - key: deployment.environment
+        from_attribute: k8s.cluster.name
+        action: insert
+
+  attributes:
+    actions:
+      - key: tenant.id
+        action: upsert
+        from_attribute: http.request.header.x-tenant-id
+
+exporters:
+  kafka/logs:
+    brokers: ["redpanda:9092"]
+    topic: "otel.logs"
+    encoding: "otlp_proto"
+
+  kafka/metrics:
+    brokers: ["redpanda:9092"]
+    topic: "otel.metrics"
+    encoding: "otlp_proto"
+
+  kafka/traces:
+    brokers: ["redpanda:9092"]
+    topic: "otel.traces"
+    encoding: "otlp_proto"
+
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [kafka/logs, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [kafka/metrics, logging]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [kafka/traces, logging]
+

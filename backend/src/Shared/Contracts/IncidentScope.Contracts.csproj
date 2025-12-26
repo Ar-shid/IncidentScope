@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.59.0" PrivateAssets="All" />
+    <Protobuf Include="../../../../proto/incidentscope/*.proto" GrpcServices="Server,Client" />
+  </ItemGroup>
+</Project>
+
