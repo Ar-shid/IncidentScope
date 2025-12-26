@@ -114,3 +114,9 @@ incidentscope/
 
 MIT
 
+This project is intentionally released under the MIT License to maximize reuse, reviewability, and learning.  
+IncidentScope is designed as a reference implementation of production-grade observability and incident management patterns, not as a commercial product.
+
+The permissive license allows engineers and teams to study, fork, and adapt the architecture and techniques without legal friction.
+
+
