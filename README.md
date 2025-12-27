@@ -138,6 +138,11 @@ incidentscope/
 
 **Current Status**: Phase 1 complete. Working on Phase 2 - implementing telemetry ingestion and correlation engine.
 
+## Contributing
+
+This repository uses a protected `main` branch.  
+All changes are made via pull requests to ensure reviewability and stability.
+
 ## License
 
 MIT
