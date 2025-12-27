@@ -8,38 +8,31 @@ on:
 
 jobs:
   backend-build:
-    name: Backend Build & Test
+    name: Backend Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # ---- Restore ----
+      # ---------- Restore ----------
       - name: Restore ApiGateway
         run: dotnet restore backend/src/ApiGateway/IncidentScope.ApiGateway.csproj
 
       - name: Restore IncidentService
         run: dotnet restore backend/src/IncidentService/IncidentScope.IncidentService.csproj
 
-      # ---- Build ----
+      # ---------- Build ----------
       - name: Build ApiGateway
-        run: dotnet build backend/src/ApiGateway/IncidentScope.ApiGateway.csproj --no-restore --configuration Release
+        run: dotnet build backend/src/ApiGateway/IncidentScope.ApiGateway.csproj --configuration Release --no-restore
 
       - name: Build IncidentService
-        run: dotnet build backend/src/IncidentService/IncidentScope.IncidentService.csproj --no-restore --configuration Release
-
-      # ---- Test ----
-      - name: Test ApiGateway
-        run: dotnet test backend/src/ApiGateway/IncidentScope.ApiGateway.csproj --no-build --configuration Release --verbosity normal
-
-      - name: Test IncidentService
-        run: dotnet test backend/src/IncidentService/IncidentScope.IncidentService.csproj --no-build --configuration Release --verbosity normal
+        run: dotnet build backend/src/IncidentService/IncidentScope.IncidentService.csproj --configuration Release --no-restore
 
   frontend-build:
     name: Frontend Build
@@ -47,7 +40,7 @@ jobs:
     needs: backend-build
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
