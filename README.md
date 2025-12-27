@@ -1,6 +1,12 @@
+<div align="center">
+  <img src="frontend/public/assets/logo.png" alt="IncidentScope Logo" width="180" />
+</div>
+
 # IncidentScope
 
 Production-ready observability and incident management platform with AI-powered root cause analysis.
+
+---
 
 ## Tech Stack
 

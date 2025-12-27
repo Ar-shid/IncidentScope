@@ -72,42 +72,72 @@ app.MapPost("/incidents", async (
 {
     var tenantContext = context.GetTenantContext();
     
-    var incident = new
+    // Handle empty or null primary service ID
+    Guid? primaryServiceId = null;
+    if (!string.IsNullOrWhiteSpace(request.PrimaryServiceId) && Guid.TryParse(request.PrimaryServiceId, out var parsedServiceId))
     {
-        Id = Guid.NewGuid(),
-        TenantId = Guid.Parse(tenantContext.TenantId),
-        EnvId = Guid.Parse(request.EnvId),
-        PrimaryServiceId = request.PrimaryServiceId != null ? (Guid?)Guid.Parse(request.PrimaryServiceId) : null,
-        Severity = request.Severity,
-        Status = "open",
-        Title = request.Title,
-        CreatedAt = DateTime.UtcNow,
-        DetectedAt = request.DetectedAtUnixMs > 0 
-            ? DateTimeOffset.FromUnixTimeMilliseconds(request.DetectedAtUnixMs).UtcDateTime 
-            : DateTime.UtcNow,
-        ResolvedAt = (DateTime?)null,
-        CreatedBy = request.CreatedBy ?? tenantContext.UserId,
-        Assignee = (string?)null,
-        Labels = request.Labels ?? new Dictionary<string, string>()
-    };
+        primaryServiceId = parsedServiceId;
+    }
+    
+    var incidentId = Guid.NewGuid();
+    var tenantId = Guid.Parse(tenantContext.TenantId);
+    var envId = Guid.Parse(request.EnvId);
+    var severity = request.Severity;
+    var status = "open";
+    var title = request.Title;
+    var createdAt = DateTime.UtcNow;
+    var detectedAt = request.DetectedAtUnixMs > 0 
+        ? DateTimeOffset.FromUnixTimeMilliseconds(request.DetectedAtUnixMs).UtcDateTime 
+        : DateTime.UtcNow;
+    var createdBy = request.CreatedBy ?? tenantContext.UserId;
+    var labels = request.Labels ?? new Dictionary<string, string>();
 
     // TODO: Use proper entity framework entities
     // For now, using raw SQL for MVP
-    await db.Database.ExecuteSqlRawAsync(@"
-        INSERT INTO incidents (id, tenant_id, env_id, primary_service_id, severity, status, title, 
-                              created_at, detected_at, created_by, labels)
-        VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}::jsonb)",
-        incident.Id, incident.TenantId, incident.EnvId, incident.PrimaryServiceId, 
-        incident.Severity, incident.Status, incident.Title, incident.CreatedAt, 
-        incident.DetectedAt, incident.CreatedBy, JsonSerializer.Serialize(incident.Labels));
+    // Use conditional SQL to handle NULL primary_service_id
+    if (primaryServiceId.HasValue)
+    {
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO incidents (id, tenant_id, env_id, primary_service_id, severity, status, title, 
+                                  created_at, detected_at, created_by, labels)
+            VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}::jsonb)",
+            incidentId, tenantId, envId, primaryServiceId.Value,
+            severity, status, title, createdAt, detectedAt, createdBy, JsonSerializer.Serialize(labels));
+    }
+    else
+    {
+        await db.Database.ExecuteSqlRawAsync(@"
+            INSERT INTO incidents (id, tenant_id, env_id, primary_service_id, severity, status, title, 
+                                  created_at, detected_at, created_by, labels)
+            VALUES ({0}, {1}, {2}, NULL, {3}, {4}, {5}, {6}, {7}, {8}, {9}::jsonb)",
+            incidentId, tenantId, envId,
+            severity, status, title, createdAt, detectedAt, createdBy, JsonSerializer.Serialize(labels));
+    }
+    
+    var incident = new
+    {
+        Id = incidentId,
+        TenantId = tenantId,
+        EnvId = envId,
+        PrimaryServiceId = primaryServiceId,
+        Severity = severity,
+        Status = status,
+        Title = title,
+        CreatedAt = createdAt,
+        DetectedAt = detectedAt,
+        ResolvedAt = (DateTime?)null,
+        CreatedBy = createdBy,
+        Assignee = (string?)null,
+        Labels = labels
+    };
 
     // Create initial event
     await db.Database.ExecuteSqlRawAsync(@"
         INSERT INTO incident_events (id, tenant_id, incident_id, type, payload)
         VALUES (gen_random_uuid(), {0}, {1}, 'detection', {2}::jsonb)",
-        incident.TenantId, incident.Id, JsonSerializer.Serialize(new { source = "manual" }));
+        tenantId, incidentId, JsonSerializer.Serialize(new { source = "manual" }));
 
-    return Results.Created($"/incidents/{incident.Id}", incident);
+    return Results.Created($"/incidents/{incidentId}", incident);
 })
 .WithName("CreateIncident")
 .WithOpenApi();
@@ -117,10 +147,14 @@ app.MapGet("/incidents/{id}", async (
     IncidentScopeDbContext db,
     string id) =>
 {
-    if (id == "new") id = Guid.Empty.ToString();
+    // Reject "new" and other non-GUID values - this endpoint is for fetching existing incidents
+    if (id == "new" || !Guid.TryParse(id, out var incidentId))
+    {
+        return Results.BadRequest("Invalid incident ID. Expected a valid GUID.");
+    }
+    
     var tenantContext = context.GetTenantContext();
     var tenantId = Guid.Parse(tenantContext.TenantId);
-    var incidentId = Guid.Parse(id);
 
     // TODO: Use proper entity queries with FromSqlRaw
     // For MVP, using direct SQL query with ADO.NET

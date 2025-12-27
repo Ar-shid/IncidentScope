@@ -191,3 +191,8 @@ CREATE INDEX idx_rag_embeddings_vector ON rag_embeddings USING ivfflat (embeddin
 INSERT INTO tenants (id, name) VALUES ('00000000-0000-0000-0000-000000000001', 'Default Tenant')
 ON CONFLICT (id) DO NOTHING;
 
+-- Seed default environment for development
+INSERT INTO environments (id, tenant_id, name, cluster, region) 
+VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Default Environment', 'default', 'us-east-1')
+ON CONFLICT (id) DO NOTHING;
+
