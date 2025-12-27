@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup .NET 8
@@ -20,19 +20,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # ---------- Restore ----------
-      - name: Restore ApiGateway
-        run: dotnet restore backend/src/ApiGateway/IncidentScope.ApiGateway.csproj
-
-      - name: Restore IncidentService
-        run: dotnet restore backend/src/IncidentService/IncidentScope.IncidentService.csproj
-
-      # ---------- Build ----------
-      - name: Build ApiGateway
-        run: dotnet build backend/src/ApiGateway/IncidentScope.ApiGateway.csproj --configuration Release --no-restore
-
-      - name: Build IncidentService
-        run: dotnet build backend/src/IncidentService/IncidentScope.IncidentService.csproj --configuration Release --no-restore
+      # 🔑 EXACTLY what you do locally
+      - name: Build ApiGateway (Debug)
+        working-directory: backend/src/ApiGateway
+        run: dotnet build
 
   frontend-build:
     name: Frontend Build
@@ -40,10 +31,9 @@ jobs:
     needs: backend-build
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
