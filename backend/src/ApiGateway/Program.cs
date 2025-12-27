@@ -6,7 +6,30 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("x-tenant-id", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Name = "x-tenant-id",
+        Description = "Tenant ID header (required for all requests). Use '00000000-0000-0000-0000-000000000001' for development.",
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "x-tenant-id"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddHttpClient();
 
 // CORS for frontend
@@ -35,7 +58,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "IncidentScope API Gateway");
+        c.EnablePersistAuthorization();
+    });
 }
 
 app.UseCors();

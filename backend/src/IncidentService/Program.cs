@@ -9,7 +9,30 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("x-tenant-id", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Name = "x-tenant-id",
+        Description = "Tenant ID header (required for all requests). Use '00000000-0000-0000-0000-000000000001' for development.",
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "x-tenant-id"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Observability
 builder.Services.AddIncidentScopeObservability(
@@ -31,7 +54,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "IncidentScope Incident Service");
+        c.EnablePersistAuthorization();
+    });
 }
 
 app.UseMiddleware<TenantMiddleware>();
@@ -152,24 +179,28 @@ app.MapGet("/incidents", async (
     var tenantContext = context.GetTenantContext();
     var tenantId = Guid.Parse(tenantContext.TenantId);
 
-    var query = "SELECT * FROM incidents WHERE tenant_id = {0}";
+    var query = "SELECT * FROM incidents WHERE tenant_id = $1";
     var parameters = new List<object> { tenantId };
+    var paramIndex = 1;
 
     if (!string.IsNullOrEmpty(envId))
     {
-        query += " AND env_id = {" + parameters.Count + "}";
+        paramIndex++;
+        query += $" AND env_id = ${paramIndex}";
         parameters.Add(Guid.Parse(envId));
     }
 
     if (!string.IsNullOrEmpty(status))
     {
-        query += " AND status = {" + parameters.Count + "}";
+        paramIndex++;
+        query += $" AND status = ${paramIndex}";
         parameters.Add(status);
     }
 
     if (severity.HasValue)
     {
-        query += " AND severity = {" + parameters.Count + "}";
+        paramIndex++;
+        query += $" AND severity = ${paramIndex}";
         parameters.Add(severity.Value);
     }
 

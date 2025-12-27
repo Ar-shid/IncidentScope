@@ -44,21 +44,21 @@ exporters:
     topic: "otel.traces"
     encoding: "otlp_proto"
 
-  logging:
-    loglevel: info
+  debug:
+    verbosity: normal
 
 service:
   pipelines:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, resource, attributes, batch]
-      exporters: [kafka/logs, logging]
+      exporters: [kafka/logs, debug]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, resource, attributes, batch]
-      exporters: [kafka/metrics, logging]
+      exporters: [kafka/metrics, debug]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, resource, attributes, batch]
-      exporters: [kafka/traces, logging]
+      exporters: [kafka/traces, debug]
 
