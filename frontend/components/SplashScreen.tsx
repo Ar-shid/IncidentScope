@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export function SplashScreen() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,10 +39,13 @@ export function SplashScreen() {
         {/* Logo with enhanced styling */}
         <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
           <div className="absolute inset-0 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10 shadow-2xl flex items-center justify-center p-8">
-            <img
+            <Image
               src="/assets/logo.png"
               alt="IncidentScope Logo"
+              width={384}
+              height={384}
               className="w-full h-full object-contain drop-shadow-2xl"
+              unoptimized
             />
           </div>
         </div>

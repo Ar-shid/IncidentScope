@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CreateIncidentForm } from '@/components/CreateIncidentForm';
 
 interface Incident {
@@ -24,11 +25,7 @@ export default function IncidentDetailPage() {
   const queryClient = useQueryClient();
   const incidentId = params.id as string;
 
-  // Handle "new" route - show create form instead of fetching
-  if (incidentId === 'new') {
-    return <CreateIncidentForm />;
-  }
-
+  // Hooks must be called unconditionally at the top level, before any early returns
   const { data: incident, isLoading } = useQuery<Incident>({
     queryKey: ['incident', incidentId],
     queryFn: async () => {
@@ -42,6 +39,7 @@ export default function IncidentDetailPage() {
       }
       return response.json();
     },
+    enabled: incidentId !== 'new', // Disable query when creating new incident
   });
 
   const resolveMutation = useMutation({
@@ -63,6 +61,11 @@ export default function IncidentDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
     },
   });
+
+  // Handle "new" route - show create form instead of fetching
+  if (incidentId === 'new') {
+    return <CreateIncidentForm />;
+  }
 
   if (isLoading) {
     return (
@@ -101,10 +104,13 @@ export default function IncidentDetailPage() {
           </Link>
           <Link href="/" className="relative w-16 h-16 md:w-20 md:h-20 opacity-90 hover:opacity-100 transition-all hover:scale-105">
             <div className="absolute inset-0 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10 shadow-lg flex items-center justify-center p-2">
-              <img
+              <Image
                 src="/assets/logo.png"
                 alt="IncidentScope Logo"
+                width={64}
+                height={64}
                 className="w-full h-full object-contain"
+                unoptimized
               />
             </div>
           </Link>

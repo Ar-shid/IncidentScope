@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface CreateIncidentRequest {
   envId: string;
@@ -154,10 +155,13 @@ export function CreateIncidentForm() {
           </Link>
           <Link href="/" className="relative w-16 h-16 md:w-20 md:h-20 opacity-90 hover:opacity-100 transition-all hover:scale-105">
             <div className="absolute inset-0 bg-white/5 rounded-xl backdrop-blur-sm border border-white/10 shadow-lg flex items-center justify-center p-2">
-              <img
+              <Image
                 src="/assets/logo.png"
                 alt="IncidentScope Logo"
+                width={64}
+                height={64}
                 className="w-full h-full object-contain"
+                unoptimized
               />
             </div>
           </Link>

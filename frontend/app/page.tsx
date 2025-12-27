@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { IncidentList } from '@/components/IncidentList';
 
 export default function Home() {
@@ -8,10 +9,13 @@ export default function Home() {
         <div className="mb-8 flex items-center gap-6">
           <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
             <div className="absolute inset-0 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 shadow-lg flex items-center justify-center p-3">
-            <img
+            <Image
               src="/assets/logo.png"
               alt="IncidentScope Logo"
+              width={96}
+              height={96}
               className="w-full h-full object-contain"
+              unoptimized
             />
             </div>
           </div>
