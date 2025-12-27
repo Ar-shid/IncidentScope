@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="frontend/public/assets/logo.png" alt="IncidentScope Logo" width="180" />
+  <img src="frontend/public/assets/logo.png" alt="IncidentScope Logo" width="300" />
 </div>
 
 # IncidentScope
