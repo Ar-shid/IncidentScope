@@ -20,10 +20,13 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 🔑 EXACTLY what you do locally
-      - name: Build ApiGateway (Debug)
+      - name: Restore and build ApiGateway
         working-directory: backend/src/ApiGateway
-        run: dotnet build
+        run: dotnet restore && dotnet build
+
+      - name: Restore and build IncidentService
+        working-directory: backend/src/IncidentService
+        run: dotnet restore && dotnet build
 
   frontend-build:
     name: Frontend Build
