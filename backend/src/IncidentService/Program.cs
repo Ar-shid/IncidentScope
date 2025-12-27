@@ -1,8 +1,8 @@
+using System.Text.Json;
+using IncidentScope.Data.Postgres;
 using IncidentScope.Observability;
 using IncidentScope.Security.Tenant;
 using Microsoft.EntityFrameworkCore;
-using IncidentScope.Data.Postgres;
-using System.Text.Json;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -117,26 +117,32 @@ app.MapGet("/incidents/{id}", async (
     IncidentScopeDbContext db,
     string id) =>
 {
+    if (id == "new") id = Guid.Empty.ToString();
     var tenantContext = context.GetTenantContext();
     var tenantId = Guid.Parse(tenantContext.TenantId);
     var incidentId = Guid.Parse(id);
 
     // TODO: Use proper entity queries with FromSqlRaw
     // For MVP, using direct SQL query with ADO.NET
-    var connection = db.Database.GetDbConnection();
-    await connection.OpenAsync();
-    using var command = connection.CreateCommand();
-    command.CommandText = @"
+    // Get a fresh connection to avoid EF transaction/prepared statement issues
+    var connectionString = db.Database.GetConnectionString();
+    await using var npgsqlConnection = new NpgsqlConnection(connectionString);
+    await npgsqlConnection.OpenAsync();
+    
+    using var command = new NpgsqlCommand(@"
         SELECT id, tenant_id, env_id, primary_service_id, severity, status, title,
                created_at, detected_at, resolved_at, created_by, assignee, labels::text
         FROM incidents
-        WHERE id = $1 AND tenant_id = $2";
-    var param1 = new NpgsqlParameter { ParameterName = "$1", Value = incidentId };
-    var param2 = new NpgsqlParameter { ParameterName = "$2", Value = tenantId };
-    command.Parameters.Add(param1);
-    command.Parameters.Add(param2);
+        WHERE id = @incidentId AND tenant_id = @tenantId", npgsqlConnection);
     
-    using var reader = await command.ExecuteReaderAsync();
+    var parameters = new List<NpgsqlParameter>
+    {
+        new NpgsqlParameter("incidentId", incidentId),
+        new NpgsqlParameter("tenantId", tenantId)
+    };
+    command.Parameters.AddRange(parameters.ToArray());
+    
+    using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.CloseConnection);
     if (!await reader.ReadAsync())
     {
         return Results.NotFound();
@@ -179,48 +185,49 @@ app.MapGet("/incidents", async (
     var tenantContext = context.GetTenantContext();
     var tenantId = Guid.Parse(tenantContext.TenantId);
 
-    var query = "SELECT * FROM incidents WHERE tenant_id = $1";
-    var parameters = new List<object> { tenantId };
-    var paramIndex = 1;
+    // Build query with explicit column names to ensure correct order
+    var query = @"SELECT id, tenant_id, env_id, primary_service_id, severity, status, title,
+                         created_at, detected_at, resolved_at, created_by, assignee, labels::text
+                  FROM incidents WHERE tenant_id = @tenantId";
+    var parameters = new List<NpgsqlParameter>
+    {
+        new NpgsqlParameter("tenantId", tenantId)
+    };
 
     if (!string.IsNullOrEmpty(envId))
     {
-        paramIndex++;
-        query += $" AND env_id = ${paramIndex}";
-        parameters.Add(Guid.Parse(envId));
+        query += " AND env_id = @envId";
+        parameters.Add(new NpgsqlParameter("envId", Guid.Parse(envId)));
     }
 
     if (!string.IsNullOrEmpty(status))
     {
-        paramIndex++;
-        query += $" AND status = ${paramIndex}";
-        parameters.Add(status);
+        query += " AND status = @status";
+        parameters.Add(new NpgsqlParameter("status", status));
     }
 
     if (severity.HasValue)
     {
-        paramIndex++;
-        query += $" AND severity = ${paramIndex}";
-        parameters.Add(severity.Value);
+        query += " AND severity = @severity";
+        parameters.Add(new NpgsqlParameter("severity", severity.Value));
     }
 
     query += " ORDER BY created_at DESC LIMIT 100";
 
-    // For MVP, using ADO.NET directly
-    var connection = db.Database.GetDbConnection();
-    await connection.OpenAsync();
-    using var command = connection.CreateCommand();
-    command.CommandText = query;
-    for (int i = 0; i < parameters.Count; i++)
-    {
-        var param = command.CreateParameter();
-        param.ParameterName = $"${i + 1}";
-        param.Value = parameters[i];
-        command.Parameters.Add(param);
-    }
+    // For MVP, using ADO.NET directly with Npgsql
+    // Get a fresh connection to avoid EF transaction/prepared statement issues
+    var connectionString = db.Database.GetConnectionString();
+    
+    await using var npgsqlConnection = new NpgsqlConnection(connectionString);
+    await npgsqlConnection.OpenAsync();
+    
+    using var command = new NpgsqlCommand(query, npgsqlConnection);
+    
+    // Add all parameters at once
+    command.Parameters.AddRange(parameters.ToArray());
 
     var incidents = new List<IncidentDto>();
-    using var reader = await command.ExecuteReaderAsync();
+    using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.CloseConnection);
     while (await reader.ReadAsync())
     {
         incidents.Add(new IncidentDto
